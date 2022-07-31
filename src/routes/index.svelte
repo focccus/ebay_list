@@ -3,6 +3,9 @@
 	import type { Item } from 'src/item';
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+
+	const MININTERVAL = 5;
 
 	let searchUrl = '';
 	let searchUrlInput: string;
@@ -16,7 +19,7 @@
 	onMount(() => {
 		searchUrlInput = $page.url.searchParams.get('url') ?? '';
 		blacklistInput = $page.url.searchParams.get('block') ?? '';
-		interval = parseInt($page.url.searchParams.get('interval') ?? '15');
+		interval = parseInt($page.url.searchParams.get('interval') ?? MININTERVAL.toString());
 		if (searchUrlInput) startSearch();
 	});
 
@@ -26,6 +29,9 @@
 			timer = undefined;
 			return;
 		}
+
+		if (interval < MININTERVAL)
+			return (error = `Interval muss mindestens ${MININTERVAL}s betragen`);
 
 		if (searchUrlInput.match(/https:\/\/www\.ebay-kleinanzeigen\.de\/.*/)) {
 			searchUrl = searchUrlInput;
@@ -43,7 +49,8 @@
 		error = '';
 		let blacklist: string[] = blacklistInput.trim().length ? blacklistInput.split(/\s/) : [];
 		const $ = (window as any).$;
-		$.get('https://api.allorigins.win/raw?url=' + searchUrl, (html: any) => {
+		let toAdd: Item[] = [];
+		$.get('https://corsproxy.io/?' + searchUrl, (html: any) => {
 			$(html)
 				.find('.aditem')
 				.each(function (this: any) {
@@ -79,9 +86,10 @@
 							(item.title + item.desc + item.location).toLowerCase().includes(b)
 						)
 					) {
-						items = [item, ...items];
+						toAdd.push(item);
 					}
 				});
+			items = [...toAdd, ...items];
 			fetching = false;
 		});
 	}
@@ -178,12 +186,12 @@
 	Lesezeichen
 </a>
 
-<div class="grid grid-cols-3 p-2">
+<div class="grid grid-cols-1 p-2 md:grid-cols-2 xl:grid-cols-3">
 	{#each items as item}
-		<a href={'https://www.ebay-kleinanzeigen.de' + item.url} target="__blank">
+		<a transition:fade href={'https://www.ebay-kleinanzeigen.de' + item.url} target="__blank">
 			<div class="grid grid-cols-[1fr_2fr] m-3 rounded hover:bg-slate-50">
 				<div class="aspect-square rounded flex items-center justify-center bg-slate-100">
-					<img src={item.img} alt="" />
+					<img src={item.img} class="max-h-full max-w-full" alt="" />
 				</div>
 				<div class="m-3 flex flex-col place-content-around">
 					<div>
