@@ -1,15 +1,24 @@
 <script lang="ts">
 	//import { JSDOM } from 'jsdom';
 	import type { Item } from 'src/item';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
 
 	let searchUrl = '';
-	let searchUrlInput = '';
-	let blacklistInput = '';
+	let searchUrlInput: string;
+	let blacklistInput: string;
 	let error = '';
 	let timer: any = undefined;
-	let interval = 15;
+	let interval: number;
 	let items: Item[] = [];
 	let fetching = false;
+
+	onMount(() => {
+		searchUrlInput = $page.url.searchParams.get('url') ?? '';
+		blacklistInput = $page.url.searchParams.get('block') ?? '';
+		interval = parseInt($page.url.searchParams.get('interval') ?? '15');
+		if (searchUrlInput) startSearch();
+	});
 
 	function startSearch() {
 		if (timer) {
@@ -161,6 +170,13 @@
 </div>
 
 <!-- <h1 class="text-3xl font-bold underline">Hello world!</h1> -->
+
+<a
+	href={`/ebay_list?url=${searchUrlInput}&interval=${interval}&block=${blacklistInput}`}
+	class="fixed right-2 bottom-2 bg-blue-600 p-3 font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg"
+>
+	Lesezeichen
+</a>
 
 <div class="grid grid-cols-3 p-2">
 	{#each items as item}
