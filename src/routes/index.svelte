@@ -58,7 +58,7 @@
 
 					let item: Item = {
 						url: $(this).attr('data-href'),
-						price: $(this).find('.aditem-main--middle--price').text().trim(),
+						price: $(this).find('.aditem-main--middle--price-shipping--price').text().trim(),
 						title: $(this).find('.ellipsis').text(),
 						img: $(this).find('.imagebox').attr('data-imgsrc'),
 						location: $(this)
